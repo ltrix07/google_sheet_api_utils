@@ -92,6 +92,23 @@ class GoogleSheets:
         first_row = self.__req_get(spreadsheet, worksheet + '!1:1', value_render_option)
         return first_row[0]
 
+    def get_column_index_by_name(
+            self, spreadsheet: str, worksheet: str, column_name: str, columns_row: list | None = None
+    ) -> int | None:
+        """
+        Function for getting the index of the column by its name.
+        :param spreadsheet: Spreadsheet ID.
+        :param worksheet: Worksheet name.
+        :param column_name: Column name.
+        :param columns_row: Row with column names from table. If not specified, the first row is used.
+        :return: Index of the column.
+        """
+        if not columns_row:
+            columns_row = self.get_columns_names(spreadsheet, worksheet)
+            return columns_row.index(to_low(column_name))
+        else:
+            return columns_row.index(to_low(column_name))
+
     def get_data_by_column_name(
             self, spreadsheet: str, worksheet: str, col_name: str, value_render_option: str | None = None,
             like_matrix: bool = False
