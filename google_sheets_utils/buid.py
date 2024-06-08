@@ -31,6 +31,15 @@ class GoogleSheets:
         response = request.execute()
         return response['values']
 
+    def get_column_index_by_column_name(
+            self, spreadsheet: str, worksheet: str, column_name: str
+    ) -> int | None:
+        columns = self.get_columns_names(spreadsheet, worksheet)
+        if columns:
+            return columns.get(column_name)
+        else:
+            return None
+
     def get_all_info_from_sheet(
             self, spreadsheet: str, worksheet: str, value_render_option: str | None = None,
             major_dimension: str | None = None
@@ -69,6 +78,19 @@ class GoogleSheets:
                 columns_indices[key] = first_row.index(to_low(value))
 
         return columns_indices
+
+    def get_columns_names(
+            self, spreadsheet: str, worksheet: str, value_render_option: str | None = None
+    ) -> list:
+        """
+        Function for getting the names of the columns in the table.
+        :param spreadsheet: Spreadsheet ID.
+        :param worksheet: Worksheet name.
+        :param value_render_option: ValueRenderOption. Can take values "FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"
+        :return: List with column names.
+        """
+        first_row = self.__req_get(spreadsheet, worksheet + '!1:1', value_render_option)
+        return first_row[0]
 
     def get_data_by_column_name(
             self, spreadsheet: str, worksheet: str, col_name: str, value_render_option: str | None = None,
