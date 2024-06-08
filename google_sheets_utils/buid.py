@@ -93,10 +93,12 @@ class GoogleSheets:
         return first_row[0]
 
     def get_column_index_by_name(
-            self, spreadsheet: str, worksheet: str, column_name: str, columns_row: list | None = None
+            self, spreadsheet: str | None, worksheet: str | None,
+            column_name: str, columns_row: list | None = None
     ) -> int | None:
         """
         Function for getting the index of the column by its name.
+        Must be specified spreadsheet and worksheet or the column_row.
         :param spreadsheet: Spreadsheet ID.
         :param worksheet: Worksheet name.
         :param column_name: Column name.
