@@ -106,9 +106,10 @@ class GoogleSheets:
         :return: Index of the column.
         """
         if not columns_row:
-            columns_row = self.get_columns_names(spreadsheet, worksheet)
+            columns_row = [to_low(elem) for elem in self.get_columns_names(spreadsheet, worksheet)]
             return columns_row.index(to_low(column_name))
         else:
+            columns_row = [to_low(elem) for elem in columns_row]
             return columns_row.index(to_low(column_name))
 
     def get_data_by_column_name(
