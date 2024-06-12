@@ -1,5 +1,4 @@
 import gspread.utils
-
 from google_sheets_utils import Credentials
 from google_sheets_utils import build
 from google_sheets_utils.text_handler import all_to_low_and_del_spc as to_low
