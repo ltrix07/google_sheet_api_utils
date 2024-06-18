@@ -1,6 +1,7 @@
+import time
+
 import gspread.utils
-from google_sheets_utils import Credentials
-from google_sheets_utils import build
+from google_sheets_utils import *
 from google_sheets_utils.text_handler import all_to_low_and_del_spc as to_low
 
 
@@ -9,26 +10,42 @@ class GoogleSheets:
         creds = Credentials.from_service_account_file(creds_path)
         self.service = build('sheets', 'v4', credentials=creds)
 
-    def __req_update(self, spreadsheet: str, body: dict) -> dict:
-        request = self.service.spreadsheets().values().batchUpdate(
-            spreadsheetId=spreadsheet,
-            body=body
-        )
-        response = request.execute()
-        return response
+    def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
+        for retry in range(retries):
+            try:
+                request = self.service.spreadsheets().values().update(
+                    spreadsheetId=spreadsheet,
+                    body=body
+                )
+                response = request.execute()
+                return response
+            except HttpError as error:
+                time.sleep(3)
+                continue
+            except SSLError as error:
+                time.sleep(3)
+                continue
 
     def __req_get(
             self, spreadsheet: str, range_: str, value_render_option: str | None = None,
-            major_dimension: str | None = None
+            major_dimension: str | None = None, retries: int = 5
     ) -> list:
-        request = self.service.spreadsheets().values().get(
-            spreadsheetId=spreadsheet,
-            range=range_,
-            valueRenderOption=value_render_option,
-            majorDimension=major_dimension
-        )
-        response = request.execute()
-        return response['values']
+        for retry in range(retries):
+            try:
+                request = self.service.spreadsheets().values().get(
+                    spreadsheetId=spreadsheet,
+                    range=range_,
+                    valueRenderOption=value_render_option,
+                    majorDimension=major_dimension
+                )
+                response = request.execute()
+                return response['values']
+            except HttpError as error:
+                time.sleep(3)
+                continue
+            except SSLError as error:
+                time.sleep(3)
+                continue
 
     @staticmethod
     def __chunk_data(data, chunk_size):
