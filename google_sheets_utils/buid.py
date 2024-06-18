@@ -1,3 +1,5 @@
+from typing import List
+
 import gspread.utils
 from google_sheets_utils import Credentials
 from google_sheets_utils import build
@@ -29,6 +31,11 @@ class GoogleSheets:
         )
         response = request.execute()
         return response['values']
+
+    @staticmethod
+    def __chunk_data(data, chunk_size):
+        for i in range(0, len(data), chunk_size):
+            yield data[i:i + chunk_size]
 
     def get_column_index_by_column_name(
             self, spreadsheet: str, worksheet: str, column_name: str
@@ -167,8 +174,9 @@ class GoogleSheets:
     def update_sheet_by_indices(
             self, spreadsheet: str, worksheet: str,
             indices: list, value_input_option: str = 'USER_ENTERED',
-            major_dimension: str = 'DIMENSION_UNSPECIFIED'
-    ) -> dict:
+            major_dimension: str = 'DIMENSION_UNSPECIFIED',
+            chunk_size: int = 1000  # Определите подходящий размер для ваших данных
+    ) -> list[dict]:
         """
         Enters data into the table with respect to
         indices and values specified in the 'indices' dictionary.
@@ -177,30 +185,36 @@ class GoogleSheets:
         :param indices: List with dictionary with index and data indices = [{'col': int, 'data': list}]
         :param value_input_option: ValueInputOption. Can take values "RAW", "USER_ENTERED". (string | None)
         :param major_dimension: majorDimension. Can take values "ROWS", "COLUMNS".
+        :param chunk_size: Размер одной части данных для отправки в одном запросе. (int)
         :return: Returns a dictionary with a response from the Google Sheets API.
         """
-
-        body = {
-            'valueInputOption': value_input_option,
-            'data': []
-        }
+        responses = []
 
         for data_dict in indices:
-            start_row = 1
+            start_row = data_dict.get('row', 1)
             col = data_dict.get('col')
             data = data_dict.get('data')
-            if data_dict.get('row'):
-                start_row = data_dict.get('row')
 
-            start_range = gspread.utils.rowcol_to_a1(start_row, col)
-            end_range = gspread.utils.rowcol_to_a1(start_row + len(data), col + len(data[0]))
-
-            body['data'].append(
-                {
-                    'range': f'{worksheet}!{start_range}:{end_range}',
-                    'majorDimension': major_dimension,
-                    'values': data
+            for chunk in chunk_data(data, chunk_size):
+                body = {
+                    'valueInputOption': value_input_option,
+                    'data': []
                 }
-            )
 
-        return self.__req_update(spreadsheet, body)
+                end_row = start_row + len(chunk) - 1
+                start_range = gspread.utils.rowcol_to_a1(start_row, col)
+                end_range = gspread.utils.rowcol_to_a1(end_row, col + len(chunk[0]) - 1)
+
+                body['data'].append(
+                    {
+                        'range': f'{worksheet}!{start_range}:{end_range}',
+                        'majorDimension': major_dimension,
+                        'values': chunk
+                    }
+                )
+
+                response = self.__req_update(spreadsheet, body)
+                responses.append(response)
+                start_row = end_row + 1  # Обновить start_row для следующей части данных
+
+        return responses
