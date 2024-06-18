@@ -13,7 +13,7 @@ class GoogleSheets:
     def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
         for retry in range(retries):
             try:
-                request = self.service.spreadsheets().values().update(
+                request = self.service.spreadsheets().batchUpdate(
                     spreadsheetId=spreadsheet,
                     body=body
                 )
