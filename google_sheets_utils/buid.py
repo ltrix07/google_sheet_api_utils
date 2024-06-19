@@ -1,6 +1,10 @@
 import time
+from ssl import SSLError
+from typing import Any
 
 import gspread.utils
+from googleapiclient.errors import HttpError
+
 from google_sheets_utils import *
 from google_sheets_utils.text_handler import all_to_low_and_del_spc as to_low
 
@@ -10,7 +14,8 @@ class GoogleSheets:
         creds = Credentials.from_service_account_file(creds_path)
         self.service = build('sheets', 'v4', credentials=creds)
 
-    def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
+    def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> Any:
+        error = None
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().batchUpdate(
@@ -25,11 +30,17 @@ class GoogleSheets:
             except SSLError as error:
                 time.sleep(3)
                 continue
+            except TimeoutError as error:
+                time.sleep(3)
+                continue
+
+        return error
 
     def __req_get(
             self, spreadsheet: str, range_: str, value_render_option: str | None = None,
             major_dimension: str | None = None, retries: int = 5
-    ) -> list:
+    ) -> Any:
+        error = None
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().values().get(
@@ -46,6 +57,11 @@ class GoogleSheets:
             except SSLError as error:
                 time.sleep(3)
                 continue
+            except TimeoutError as error:
+                time.sleep(3)
+                continue
+
+        return error
 
     @staticmethod
     def __chunk_data(data, chunk_size):
