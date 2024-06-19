@@ -15,7 +15,6 @@ class GoogleSheets:
         self.service = build('sheets', 'v4', credentials=creds)
 
     def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> Any:
-        error = None
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().batchUpdate(
@@ -34,13 +33,10 @@ class GoogleSheets:
                 time.sleep(3)
                 continue
 
-        return error
-
     def __req_get(
             self, spreadsheet: str, range_: str, value_render_option: str | None = None,
             major_dimension: str | None = None, retries: int = 5
     ) -> Any:
-        error = None
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().values().get(
@@ -60,8 +56,6 @@ class GoogleSheets:
             except TimeoutError as error:
                 time.sleep(3)
                 continue
-
-        return error
 
     @staticmethod
     def __chunk_data(data, chunk_size):
