@@ -26,8 +26,7 @@ class GoogleSheets:
                 return response
             except HttpError as error:
                 errors[error] = error.content
-                time.sleep(3)
-                continue
+                return errors
             except SSLError as error:
                 errors[error] = error.errno
                 time.sleep(3)
@@ -56,8 +55,7 @@ class GoogleSheets:
                 return response['values']
             except HttpError as error:
                 errors[error] = error.content
-                time.sleep(3)
-                continue
+                return errors
             except SSLError as error:
                 errors[error] = error.errno
                 time.sleep(3)
@@ -250,8 +248,7 @@ class GoogleSheets:
             return [self.__req_update(spreadsheet, body)]
         else:
             for _ in range(0, len(indices), chunk_size):
-                body = self.__collect_body(indices[_:_ + chunk_size], worksheet, value_input_option)
+                body = self.__collect_body(indices[_:_ + chunk_size], worksheet, value_input_option, major_dimension)
                 responses.append(self.__req_update(spreadsheet, body))
 
         return responses
-

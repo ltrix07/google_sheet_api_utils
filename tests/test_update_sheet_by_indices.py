@@ -1,18 +1,13 @@
 from tests import *
 
 google = GoogleSheets('/home/black_bounty/PycharmProjects/Amazon-HomeDepot-Checker/creds/google_creds.json')
-
-indices = [
-    {
-        'col': 3,
-        'data': [['data'], [1], [34], [112]]
-    },
-    {
-        'col': 6,
-        'row': 6,
-        'data': [['lol', 'BLS']]
-    }
-]
+indices = []
+for i in range(1, 2754):
+    indices.append({
+        'col': 1,
+        'row': i,
+        'data': [['hello']]
+    })
 
 print(google.update_sheet_by_indices(TEST_SPREADSHEET_ID, TEST_WORKSHEET_WRITE,
                                      indices))
