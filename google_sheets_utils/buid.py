@@ -18,7 +18,7 @@ class GoogleSheets:
         errors = {'status': 'error'}
         for retry in range(retries):
             try:
-                request = self.service.spreadsheets().batchUpdate(
+                request = self.service.spreadsheets().values().batchUpdate(
                     spreadsheetId=spreadsheet,
                     body=body
                 )
@@ -70,7 +70,7 @@ class GoogleSheets:
         return errors
 
     @staticmethod
-    def __collect_body(indices: list, worksheet: str, value_input_option: str) -> dict:
+    def __collect_body(indices: list, worksheet: str, value_input_option: str, major_dimension: str) -> dict:
         body = {
             'valueInputOption': value_input_option,
             'data': []
@@ -88,6 +88,7 @@ class GoogleSheets:
             body['data'].append(
                 {
                     'range': f'{worksheet}!{start_range}:{end_range}',
+                    'majorDimension': major_dimension,
                     'values': data
                 }
             )
@@ -229,7 +230,8 @@ class GoogleSheets:
 
     def update_sheet_by_indices(
             self, spreadsheet: str, worksheet: str,
-            indices: list, value_input_option: str = 'USER_ENTERED', chunk_size: int = 1000
+            indices: list, value_input_option: str = 'USER_ENTERED',
+            major_dimension: str = 'DIMENSION_UNSPECIFIED', chunk_size: int = 1000
     ) -> list[dict]:
         """
         Enters data into the table with respect to
@@ -238,13 +240,18 @@ class GoogleSheets:
         :param spreadsheet: Spreadsheet ID. (string)
         :param worksheet: Worksheet name. (string)
         :param indices: List with dictionary with index and data indices = [{'col': int, 'data': list}]
+        :param major_dimension: majorDimension. Can take values "ROWS", "COLUMNS".
         :param value_input_option: ValueInputOption. Can take values "RAW", "USER_ENTERED". (string | None)
         :return: Returns a dictionary with a response from the Google Sheets API.
         """
         responses = []
-        for _ in range(0, len(indices), chunk_size):
-            body = self.__collect_body(indices[_:_ + chunk_size], worksheet, value_input_option)
-            responses.append(self.__req_update(spreadsheet, body))
+        if len(indices) < chunk_size:
+            body = self.__collect_body(indices, worksheet, value_input_option, major_dimension)
+            return [self.__req_update(spreadsheet, body)]
+        else:
+            for _ in range(0, len(indices), chunk_size):
+                body = self.__collect_body(indices[_:_ + chunk_size], worksheet, value_input_option)
+                responses.append(self.__req_update(spreadsheet, body))
 
         return responses
 

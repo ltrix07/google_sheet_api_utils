@@ -1,6 +1,6 @@
 from tests import *
 
-google = GoogleSheets('/home/black_bounty/PycharmProjects/Amazon-Parser/creds.json')
+google = GoogleSheets('/home/black_bounty/PycharmProjects/Amazon-HomeDepot-Checker/creds/google_creds.json')
 
 indices = [
     {
