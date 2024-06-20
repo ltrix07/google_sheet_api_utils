@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="google_sheets_api",
-    version="0.1.9",
+    version="0.1.10",
     description="A handy library for interacting with the Google Sheets API.",
     author="ltrix07",
     author_email="ltrix02@gmail.com",
