@@ -14,7 +14,8 @@ class GoogleSheets:
         creds = Credentials.from_service_account_file(creds_path)
         self.service = build('sheets', 'v4', credentials=creds)
 
-    def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> Any:
+    def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
+        errors = {'status': 'error'}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().batchUpdate(
@@ -24,19 +25,25 @@ class GoogleSheets:
                 response = request.execute()
                 return response
             except HttpError as error:
+                errors[error] = error.response['error']['message']
                 time.sleep(3)
                 continue
             except SSLError as error:
+                errors[error] = error.response['error']['message']
                 time.sleep(3)
                 continue
             except TimeoutError as error:
+                errors[error] = error.response['error']['message']
                 time.sleep(3)
                 continue
+
+        return errors
 
     def __req_get(
             self, spreadsheet: str, range_: str, value_render_option: str | None = None,
             major_dimension: str | None = None, retries: int = 5
-    ) -> Any:
+    ) -> list | dict:
+        errors = {'status': 'error'}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().values().get(
@@ -48,14 +55,19 @@ class GoogleSheets:
                 response = request.execute()
                 return response['values']
             except HttpError as error:
+                errors[error] = error.response['error']['message']
                 time.sleep(3)
                 continue
             except SSLError as error:
+                errors[error] = error.response['error']['message']
                 time.sleep(3)
                 continue
             except TimeoutError as error:
+                errors[error] = error.response['error']['message']
                 time.sleep(3)
                 continue
+
+        return errors
 
     @staticmethod
     def __chunk_data(data, chunk_size):
