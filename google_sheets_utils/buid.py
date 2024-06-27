@@ -67,6 +67,27 @@ class GoogleSheets:
 
         return errors
 
+    def __req_get_info(self, spreadsheet: str, retries: int = 5) -> dict:
+        errors = {'status': 'error'}
+        for retry in range(retries):
+            try:
+                request = self.service.spreadsheets().get(spreadsheetId=spreadsheet)
+                response = request.execute()
+                return response
+            except HttpError as error:
+                errors[error] = error.content
+                return errors
+            except SSLError as error:
+                errors[error] = error.errno
+                time.sleep(3)
+                continue
+            except TimeoutError as error:
+                errors[error] = error.errno
+                time.sleep(10)
+                continue
+
+        return errors
+
     @staticmethod
     def __collect_body(indices: list, worksheet: str, value_input_option: str, major_dimension: str) -> dict:
         body = {
@@ -92,9 +113,59 @@ class GoogleSheets:
             )
         return body
 
+    def get_sheets_name(self, spreadsheet: str) -> list:
+        """
+        Gets the list of sheets names in spreadsheet.
+        :param spreadsheet: Spreadsheet ID. (string)
+        :return: List with sheet names.
+        """
+        sheets = []
+        response = self.__req_get_info(spreadsheet).get('sheets')
+        if response:
+            for sheet in response:
+                sheets.append(sheet.get('properties').get('title'))
+        return sheets
+
+    def rows_count(self, spreadsheet: str, worksheet: str | list) -> int:
+        """
+        Gets the total number of rows in the specified worksheets.
+        :param spreadsheet: Spreadsheet ID.
+        :param worksheet: String or list with worksheet name.
+        :return: Total number of rows from specified worksheets.
+        """
+        row_count = 0
+        response = self.__req_get_info(spreadsheet).get('sheets')
+        if response:
+            for sheet in response:
+                if sheet.get('properties').get('title') in worksheet:
+                    row_count += sheet.get('properties').get('gridProperties').get('rowCount')
+        return row_count
+
+    def columns_count(self, spreadsheet: str, worksheet: str | list) -> int:
+        """
+        Gets the total number of columns in the specified worksheets.
+        :param spreadsheet: Spreadsheet ID.
+        :param worksheet: String or list with worksheet name.
+        :return: Total number of columns from specified worksheets.
+        """
+        column_count = 0
+        response = self.__req_get_info(spreadsheet).get('sheets')
+        if response:
+            for sheet in response:
+                if sheet.get('properties').get('title') in worksheet:
+                    column_count += sheet.get('properties').get('gridProperties').get('columnCount')
+        return column_count
+
     def get_column_index_by_column_name(
             self, spreadsheet: str, worksheet: str, column_name: str
     ) -> int | None:
+        """
+        Function for getting the index of the column by its name.
+        :param spreadsheet: Spreadsheet ID.
+        :param worksheet: Worksheet name.
+        :param column_name: Column name.
+        :return: Returns index of the column
+        """
         columns = self.get_columns_names(spreadsheet, worksheet)
         if columns:
             return columns.get(column_name)
@@ -107,7 +178,6 @@ class GoogleSheets:
     ) -> list:
         """
         Function get all info from spreadsheet.
-
         :param spreadsheet: spreadsheet ID.
         :param worksheet: worksheet name.
         :param value_render_option: ValueRenderOption. Can take values "FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"
@@ -125,7 +195,6 @@ class GoogleSheets:
         """
         Function for determining the index of the required columns relative to a pre-specified dictionary
         with the name of these columns (case and tabulation are omitted).
-
         :param worksheet_data: All the data from the table is in matrix format.
         :param columns: Headword. key is the definition of the column. value is its actual name in the table.
         :return: Dictionary as a key the column name (specified in the head dictionary),
