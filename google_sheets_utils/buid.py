@@ -88,6 +88,27 @@ class GoogleSheets:
 
         return errors
 
+    def __req_update_info(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
+        errors = {'status': 'error'}
+        for retry in range(retries):
+            try:
+                request = self.service.spreadsheets().batchUpdate(
+                    spreadsheetId=spreadsheet,
+                    body=body
+                )
+                return request.execute()
+            except HttpError as error:
+                errors[error] = error.content
+                return errors
+            except SSLError as error:
+                errors[error] = error.errno
+                time.sleep(3)
+                continue
+            except TimeoutError as error:
+                errors[error] = error.errno
+                time.sleep(10)
+                continue
+
     @staticmethod
     def __collect_body(indices: list, worksheet: str, value_input_option: str, major_dimension: str) -> dict:
         body = {
@@ -266,6 +287,144 @@ class GoogleSheets:
                 return [row[index] for row in all_data]
         else:
             return None
+
+    def get_sheet_id_by_name(self, spreadsheet: str, sheet_name: str) -> int | None:
+        """
+        Function for getting the ID of the sheet by its name.
+        :param spreadsheet: Spreadsheet ID. (string)
+        :param sheet_name: Sheet name. (string)
+        :return: Returns the ID of the sheet.
+        """
+        request = self.__req_get_info(spreadsheet).get('sheets')
+        if request:
+            for sheet in request:
+                if sheet.get('properties').get('title') == sheet_name:
+                    return sheet.get('properties').get('sheetId')
+        return None
+
+    def create_new_sheet(self, spreadsheet: str, sheet_name: str) -> dict:
+        """
+        Function for creating a new sheet in the spreadsheet.
+        :param spreadsheet: Spreadsheet ID. (string)
+        :param sheet_name: Sheet name. (string)
+        :return: Returns a dictionary with a response from the Google Sheets API.
+        """
+
+        body = {
+            'requests': [
+                {
+                    'addSheet': {
+                        'properties': {
+                            'title': sheet_name
+                        }
+                    }
+                }
+            ]
+        }
+
+        return self.__req_update_info(spreadsheet, body)
+
+    def delete_sheet(
+            self, spreadsheet: str, sheet_name: str | None = None, sheet_id: int | None = None
+    ) -> dict | None:
+        """
+        Function for deleting a sheet in the spreadsheet.
+        :param spreadsheet: Spreadsheet ID. (string)
+        :param sheet_name: Sheet name. (string)
+        :param sheet_id: Need to specify the sheet ID if the sheet name is not unique. (int | None)
+        :return: Returns a dictionary with a response from the Google Sheets API.
+        """
+
+        if sheet_name and not sheet_id:
+            sheet_id = self.get_sheet_id_by_name(spreadsheet, sheet_name)
+
+        if not sheet_id:
+            return None
+
+        body = {
+            'requests': [
+                {
+                    'deleteSheet': {
+                        'sheetId': sheet_id
+                    }
+                }
+            ]
+        }
+
+        return self.__req_update_info(spreadsheet, body)
+
+    def rename_sheet(self, spreadsheet: str, old_name: str, new_name: str) -> dict | None:
+        """
+        Function for renaming a sheet in the spreadsheet.
+        :param spreadsheet: Spreadsheet ID. (string)
+        :param old_name: Old sheet name. (string)
+        :param new_name: New sheet name. (string)
+        :return: Returns a dictionary with a response from the Google Sheets API.
+        """
+
+        if old_name == new_name:
+            return None
+
+        old_sheet_id = self.get_sheet_id_by_name(spreadsheet, old_name)
+        if old_sheet_id is None:
+            return None
+
+        body = {
+            'requests': [
+                {
+                    'updateSheetProperties': {
+                        'properties': {
+                            'sheetId': old_sheet_id,
+                            'title': new_name
+                        },
+                        'fields': 'title'
+                    }
+                }
+            ]
+        }
+
+        return self.__req_update_info(spreadsheet, body)
+
+    def clear_range(
+            self, spreadsheet: str, start_row: int, end_row: int, start_col: int, end_col: int,
+            sheet_name: str | None = None, sheet_id: int | None = None,
+    ) -> dict | None:
+        """
+        Function for clearing a range in the spreadsheet.
+        :param spreadsheet: Spreadsheet ID. (string)
+        :param start_row: Start row. (int)
+        :param end_row: End row. (int)
+        :param start_col: Start column. (int)
+        :param end_col: End column. (int)
+        :param sheet_name: Sheet name. (string)
+        :param sheet_id: Need to specify the sheet ID if the sheet name is not unique. (int | None)
+        :return: Returns a dictionary with a response from the Google Sheets API.
+        """
+
+        if sheet_name and not sheet_id:
+            sheet_id = self.get_sheet_id_by_name(spreadsheet, sheet_name)
+
+        if not sheet_id:
+            return None
+
+        body = {
+            'requests': [
+                {
+                    'updateCells': {
+                        'range': {
+                            'sheetId': sheet_id,
+                            'startRowIndex': start_row - 1,
+                            'endRowIndex': end_row,
+                            'startColumnIndex': start_col - 1,
+                            'endColumnIndex': end_col
+                        },
+                        'fields': 'userEnteredValue'
+                    }
+                }
+            ]
+        }
+
+        return self.__req_update_info(spreadsheet, body)
 
     def update_sheet(
             self, spreadsheet: str, range_: str,
