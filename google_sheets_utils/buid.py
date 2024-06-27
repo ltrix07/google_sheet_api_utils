@@ -1,11 +1,5 @@
-import time
-from ssl import SSLError
-from typing import Any, List
-import gspread.utils
-from googleapiclient.errors import HttpError
-from googleapiclient.http import HttpRequest
-from google.auth.transport.requests import AuthorizedSession
 from google_sheets_utils import *
+from errors import *
 from google_sheets_utils.text_handler import all_to_low_and_del_spc as to_low
 
 
@@ -24,17 +18,11 @@ class GoogleSheets:
                 )
                 response = request.execute()
                 return response
-            except HttpError as error:
-                errors[error] = error.content
-                return errors
-            except SSLError as error:
-                errors[error] = error.errno
-                time.sleep(3)
-                continue
-            except TimeoutError as error:
-                errors[error] = error.errno
-                time.sleep(3)
-                continue
+            except Exception as error:
+                err_type = exceptions_handler_for_requests(error)
+                if not err_type:
+                    continue
+                errors[err_type] = error
 
         return errors
 
@@ -53,17 +41,11 @@ class GoogleSheets:
                 )
                 response = request.execute()
                 return response['values']
-            except HttpError as error:
-                errors[error] = error.content
-                return errors
-            except SSLError as error:
-                errors[error] = error.errno
-                time.sleep(3)
-                continue
-            except TimeoutError as error:
-                errors[error] = error.errno
-                time.sleep(10)
-                continue
+            except Exception as error:
+                err_type = exceptions_handler_for_requests(error)
+                if not err_type:
+                    continue
+                errors[err_type] = error
 
         return errors
 
@@ -74,17 +56,11 @@ class GoogleSheets:
                 request = self.service.spreadsheets().get(spreadsheetId=spreadsheet)
                 response = request.execute()
                 return response
-            except HttpError as error:
-                errors[error] = error.content
-                return errors
-            except SSLError as error:
-                errors[error] = error.errno
-                time.sleep(3)
-                continue
-            except TimeoutError as error:
-                errors[error] = error.errno
-                time.sleep(10)
-                continue
+            except Exception as error:
+                err_type = exceptions_handler_for_requests(error)
+                if not err_type:
+                    continue
+                errors[err_type] = error
 
         return errors
 
@@ -97,17 +73,11 @@ class GoogleSheets:
                     body=body
                 )
                 return request.execute()
-            except HttpError as error:
-                errors[error] = error.content
-                return errors
-            except SSLError as error:
-                errors[error] = error.errno
-                time.sleep(3)
-                continue
-            except TimeoutError as error:
-                errors[error] = error.errno
-                time.sleep(10)
-                continue
+            except Exception as error:
+                err_type = exceptions_handler_for_requests(error)
+                if not err_type:
+                    continue
+                errors[err_type] = error
 
     @staticmethod
     def __collect_body(indices: list, worksheet: str, value_input_option: str, major_dimension: str) -> dict:
