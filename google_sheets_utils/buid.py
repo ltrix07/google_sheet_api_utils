@@ -1,6 +1,4 @@
 from google_sheets_utils import *
-from errors import *
-from google_sheets_utils.text_handler import all_to_low_and_del_spc as to_low
 
 
 class GoogleSheets:
@@ -193,7 +191,10 @@ class GoogleSheets:
         """
 
         columns_indices = {}
-        first_row = [to_low(elem) for elem in worksheet_data[0]]
+        try:
+            first_row = [to_low(elem) for elem in worksheet_data[0]]
+        except KeyError:
+            raise KeyError('Did not find any data in the worksheet.')
         for key, value in columns.items():
             if to_low(value) in first_row:
                 columns_indices[key] = first_row.index(to_low(value))

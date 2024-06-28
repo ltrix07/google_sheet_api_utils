@@ -1,8 +1,8 @@
 from tests import *
 
-google = GoogleSheets('/home/black_bounty/PycharmProjects/Amazon-Parser/creds.json')
+google = GoogleSheets('/home/black_bounty/PycharmProjects/Amazon-HomeDepot-Checker/creds/google_creds.json')
 
-data = google.get_all_info_from_sheet(TEST_SPREADSHEET_ID, TEST_WORKSHEET)
+data = google.get_all_info_from_sheet(TEST_SPREADSHEET_ID, TEST_WORKSHEET_READ)
 columns = {
     'col1': 'COl 11',
     'col2': 'coll213',
