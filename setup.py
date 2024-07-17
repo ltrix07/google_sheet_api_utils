@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 with open("requirements.txt") as f:
-    requirements = f.readlines()
+    requirements = [line.strip() for line in f if line.strip()]
 
 setup(
     name="google_sheets_api",
-    version="0.2.7",
+    version="0.2.8",
     description="A handy library for interacting with the Google Sheets API.",
     author="ltrix07",
     author_email="ltrix02@gmail.com",
