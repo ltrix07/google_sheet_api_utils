@@ -165,7 +165,7 @@ class GoogleSheets:
     def get_all_info_from_sheet(
             self, spreadsheet: str, worksheet: str, value_render_option: str | None = None,
             major_dimension: str | None = None
-    ) -> list:
+    ) -> dict:
         """
         Function get all info from spreadsheet.
         :param spreadsheet: spreadsheet ID.
