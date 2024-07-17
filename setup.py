@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 
 with open("requirements.txt") as f:
     requirements = [line.strip() for line in f if line.strip()]
+print(requirements)
 
 setup(
     name="google_sheets_api",
