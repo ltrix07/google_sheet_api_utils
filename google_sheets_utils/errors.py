@@ -1,16 +1,14 @@
 from google_sheets_utils import *
 
 
-def exceptions_handler_for_requests(error: Exception):
+def exceptions_handler_for_requests(error):
     if isinstance(error, HttpError):
-        return 'HttpError'
-    elif isinstance(error, SSLError):
-        print(error)
-        time.sleep(3)
-        return None
-    elif isinstance(error, TimeoutError):
-        print(error)
-        time.sleep(3)
-        return None
+        status = error.status_code
+        if status == 403:
+            return 'forbidden'
+        if status == 404:
+            return 'not_found'
+        else:
+            return f'http_error_{status}'
     else:
-        return str(error)
+        return f"{error}"

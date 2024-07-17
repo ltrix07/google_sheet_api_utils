@@ -28,7 +28,7 @@ class GoogleSheets:
             self, spreadsheet: str, range_: str, value_render_option: str | None = None,
             major_dimension: str | None = None, retries: int = 5
     ) -> list | dict:
-        errors = {'status': 'error'}
+        errors = {'status': 'error', 'errors': []}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().values().get(
@@ -43,12 +43,12 @@ class GoogleSheets:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
                     continue
-                errors[err_type] = error
+                errors['errors'].append({err_type: error})
 
         return errors
 
     def __req_get_info(self, spreadsheet: str, retries: int = 5) -> dict:
-        errors = {'status': 'error'}
+        errors = {'status': 'error', 'errors': []}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().get(spreadsheetId=spreadsheet)
@@ -58,12 +58,12 @@ class GoogleSheets:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
                     continue
-                errors[err_type] = error
+                errors['errors'].append({err_type: error})
 
         return errors
 
     def __req_update_info(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
-        errors = {'status': 'error'}
+        errors = {'status': 'error', 'errors': []}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().batchUpdate(
@@ -75,7 +75,7 @@ class GoogleSheets:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
                     continue
-                errors[err_type] = error
+                errors['errors'].append({err_type: error})
 
     @staticmethod
     def __collect_body(indices: list, worksheet: str, value_input_option: str, major_dimension: str) -> dict:
@@ -157,7 +157,8 @@ class GoogleSheets:
         """
         columns = self.get_columns_names(spreadsheet, worksheet)
         if columns:
-            return columns.get(column_name)
+            if column_name in columns:
+                return columns.index(column_name)
         else:
             return None
 
