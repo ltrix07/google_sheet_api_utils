@@ -102,16 +102,18 @@ class GoogleSheets:
             )
         return body
 
-    def get_sheets_name(self, spreadsheet: str) -> list:
+    def get_sheets_name(self, spreadsheet: str) -> list | dict:
         """
         Gets the list of sheets names in spreadsheet.
         :param spreadsheet: Spreadsheet ID. (string)
         :return: List with sheet names.
         """
         sheets = []
-        response = self.__req_get_info(spreadsheet).get('sheets')
-        if response:
-            for sheet in response:
+        response = self.__req_get_info(spreadsheet)
+        if response.get('errors'):
+            return response
+        else:
+            for sheet in response.get('sheets'):
                 sheets.append(sheet.get('properties').get('title'))
         return sheets
 
