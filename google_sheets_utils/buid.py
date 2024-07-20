@@ -111,7 +111,8 @@ class GoogleSheets:
         sheets = []
         response = self.__req_get_info(spreadsheet)
         if response.get('errors'):
-            return response
+            sheets.append('errors')
+            return sheets
         else:
             for sheet in response.get('sheets'):
                 sheets.append(sheet.get('properties').get('title'))
