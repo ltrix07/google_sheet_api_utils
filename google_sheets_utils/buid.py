@@ -13,8 +13,7 @@ class GoogleSheets:
                     spreadsheetId=spreadsheet,
                     body=body
                 )
-                response = request.execute()
-                return response
+                return request.execute()
             except Exception as error:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
@@ -34,8 +33,7 @@ class GoogleSheets:
                     valueRenderOption=value_render_option,
                     majorDimension=major_dimension
                 )
-                response = request.execute()
-                return response['values']
+                return request.execute().get('values')
             except Exception as error:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
@@ -47,8 +45,7 @@ class GoogleSheets:
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().get(spreadsheetId=spreadsheet)
-                response = request.execute()
-                return response
+                return request.execute()
             except Exception as error:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
