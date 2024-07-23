@@ -7,7 +7,6 @@ class GoogleSheets:
         self.service = build('sheets', 'v4', credentials=self.creds)
 
     def __req_update(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
-        errors = {'status': 'error'}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().values().batchUpdate(
@@ -20,15 +19,13 @@ class GoogleSheets:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
                     continue
-                errors[err_type] = error
-
-        return errors
+                else:
+                    raise
 
     def __req_get(
             self, spreadsheet: str, range_: str, value_render_option: str | None = None,
             major_dimension: str | None = None, retries: int = 5
-    ) -> list | dict:
-        errors = {'status': 'error', 'errors': []}
+    ) -> list:
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().values().get(
@@ -43,12 +40,10 @@ class GoogleSheets:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
                     continue
-                errors['errors'].append({err_type: error})
-
-        return errors
+                else:
+                    raise
 
     def __req_get_info(self, spreadsheet: str, retries: int = 5) -> dict:
-        errors = {'status': 'error', 'errors': []}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().get(spreadsheetId=spreadsheet)
@@ -58,12 +53,10 @@ class GoogleSheets:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
                     continue
-                errors['errors'].append({err_type: error})
-
-        return errors
+                else:
+                    raise
 
     def __req_update_info(self, spreadsheet: str, body: dict, retries: int = 5) -> dict:
-        errors = {'status': 'error', 'errors': []}
         for retry in range(retries):
             try:
                 request = self.service.spreadsheets().batchUpdate(
@@ -75,7 +68,7 @@ class GoogleSheets:
                 err_type = exceptions_handler_for_requests(error)
                 if not err_type:
                     continue
-                errors['errors'].append({err_type: error})
+                raise
 
     @staticmethod
     def __collect_body(indices: list, worksheet: str, value_input_option: str, major_dimension: str) -> dict:
@@ -102,7 +95,7 @@ class GoogleSheets:
             )
         return body
 
-    def get_sheets_name(self, spreadsheet: str) -> list | dict:
+    def get_sheets_name(self, spreadsheet: str) -> list:
         """
         Gets the list of sheets names in spreadsheet.
         :param spreadsheet: Spreadsheet ID. (string)
@@ -110,11 +103,8 @@ class GoogleSheets:
         """
         sheets = []
         response = self.__req_get_info(spreadsheet)
-        if response.get('errors'):
-            return response
-        else:
-            for sheet in response.get('sheets'):
-                sheets.append(sheet.get('properties').get('title'))
+        for sheet in response.get('sheets'):
+            sheets.append(sheet.get('properties').get('title'))
         return sheets
 
     def rows_count(self, spreadsheet: str, worksheet: str | list) -> int:
@@ -167,7 +157,7 @@ class GoogleSheets:
     def get_all_info_from_sheet(
             self, spreadsheet: str, worksheet: str, value_render_option: str | None = None,
             major_dimension: str | None = None
-    ) -> dict:
+    ) -> list:
         """
         Function get all info from spreadsheet.
         :param spreadsheet: spreadsheet ID.
