@@ -6,7 +6,7 @@ print(requirements)
 
 setup(
     name="google_sheets_api",
-    version="0.2.13",
+    version="0.3.1",
     description="A handy library for interacting with the Google Sheets API.",
     author="ltrix07",
     author_email="ltrix02@gmail.com",
