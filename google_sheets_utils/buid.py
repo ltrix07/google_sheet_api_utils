@@ -105,7 +105,7 @@ class GoogleSheets:
             sheets.append(sheet.get('properties').get('title'))
         return sheets
 
-    def rows_count(self, spreadsheet: str, worksheet: str | list) -> int:
+    def rows_count(self, spreadsheet: str, worksheet: Optional[str, list]) -> int:
         """
         Gets the total number of rows in the specified worksheets.
         :param spreadsheet: Spreadsheet ID.
