@@ -1,4 +1,5 @@
 from google_sheets_utils import *
+from typing import Optional
 
 
 class GoogleSheets:
@@ -22,8 +23,8 @@ class GoogleSheets:
                     raise
 
     def __req_get(
-            self, spreadsheet: str, range_: str, value_render_option: str | None = None,
-            major_dimension: str | None = None, retries: int = 5
+            self, spreadsheet: str, range_: str, value_render_option: Optional[str] = None,
+            major_dimension: Optional[str] = None, retries: int = 5
     ) -> list:
         for retry in range(retries):
             try:
@@ -119,7 +120,7 @@ class GoogleSheets:
                     row_count += sheet.get('properties').get('gridProperties').get('rowCount')
         return row_count
 
-    def columns_count(self, spreadsheet: str, worksheet: str | list) -> int:
+    def columns_count(self, spreadsheet: str, worksheet: Optional[str, list]) -> int:
         """
         Gets the total number of columns in the specified worksheets.
         :param spreadsheet: Spreadsheet ID.
@@ -136,7 +137,7 @@ class GoogleSheets:
 
     def get_column_index_by_column_name(
             self, spreadsheet: str, worksheet: str, column_name: str
-    ) -> int | None:
+    ) -> Optional[int]:
         """
         Function for getting the index of the column by its name.
         :param spreadsheet: Spreadsheet ID.
@@ -152,8 +153,8 @@ class GoogleSheets:
             return None
 
     def get_all_info_from_sheet(
-            self, spreadsheet: str, worksheet: str, value_render_option: str | None = None,
-            major_dimension: str | None = None
+            self, spreadsheet: str, worksheet: str, value_render_option: Optional[str] = None,
+            major_dimension: Optional[str, list] = None
     ) -> list:
         """
         Function get all info from spreadsheet.
@@ -170,7 +171,7 @@ class GoogleSheets:
         return self.__req_get(spreadsheet, worksheet, value_render_option, major_dimension)
 
     @staticmethod
-    def get_columns_indices(worksheet_data: list, columns: dict) -> dict | None:
+    def get_columns_indices(worksheet_data: list, columns: dict) -> Optional[dict]:
         """
         Function for determining the index of the required columns relative to a pre-specified dictionary
         with the name of these columns (case and tabulation are omitted).
@@ -192,7 +193,7 @@ class GoogleSheets:
         return columns_indices
 
     def get_columns_names(
-            self, spreadsheet: str, worksheet: str, value_render_option: str | None = None
+            self, spreadsheet: str, worksheet: str, value_render_option: Optional[str, list] = None
     ) -> list:
         """
         Function for getting the names of the columns in the table.
@@ -205,9 +206,9 @@ class GoogleSheets:
         return first_row[0]
 
     def get_column_index_by_name(
-            self, spreadsheet: str | None, worksheet: str | None,
-            column_name: str, columns_row: list | None = None
-    ) -> int | None:
+            self, spreadsheet: Optional[str], worksheet: Optional[str],
+            column_name: str, columns_row: Optional[list] = None
+    ) -> Optional[int]:
         """
         Function for getting the index of the column by its name.
         Must be specified spreadsheet and worksheet or the column_row.
@@ -225,9 +226,9 @@ class GoogleSheets:
             return columns_row.index(to_low(column_name))
 
     def get_data_by_column_name(
-            self, spreadsheet: str, worksheet: str, col_name: str, value_render_option: str | None = None,
+            self, spreadsheet: str, worksheet: str, col_name: str, value_render_option: Optional[str] = None,
             like_matrix: bool = False
-    ) -> list | None:
+    ) -> Optional[list]:
         """
         Allows you to retrieve data from the specified column. Tabs and spaces are omitted.
         :param spreadsheet: Spreadsheet ID.
@@ -249,7 +250,7 @@ class GoogleSheets:
         else:
             return None
 
-    def get_sheet_id_by_name(self, spreadsheet: str, sheet_name: str) -> int | None:
+    def get_sheet_id_by_name(self, spreadsheet: str, sheet_name: str) -> Optional[int]:
         """
         Function for getting the ID of the sheet by its name.
         :param spreadsheet: Spreadsheet ID. (string)
@@ -286,8 +287,8 @@ class GoogleSheets:
         return self.__req_update_info(spreadsheet, body)
 
     def delete_sheet(
-            self, spreadsheet: str, sheet_name: str | None = None, sheet_id: int | None = None
-    ) -> dict | None:
+            self, spreadsheet: str, sheet_name: Optional[str] = None, sheet_id: Optional[int] = None
+    ) -> Optional[dict]:
         """
         Function for deleting a sheet in the spreadsheet.
         :param spreadsheet: Spreadsheet ID. (string)
@@ -314,7 +315,7 @@ class GoogleSheets:
 
         return self.__req_update_info(spreadsheet, body)
 
-    def rename_sheet(self, spreadsheet: str, old_name: str, new_name: str) -> dict | None:
+    def rename_sheet(self, spreadsheet: str, old_name: str, new_name: str) -> Optional[dict]:
         """
         Function for renaming a sheet in the spreadsheet.
         :param spreadsheet: Spreadsheet ID. (string)
@@ -348,8 +349,8 @@ class GoogleSheets:
 
     def clear_range(
             self, spreadsheet: str, start_row: int, end_row: int, start_col: int, end_col: int,
-            sheet_name: str | None = None, sheet_id: int | None = None,
-    ) -> dict | None:
+            sheet_name: Optional[str] = None, sheet_id: Optional[int] = None,
+    ) -> Optional[dict]:
         """
         Function for clearing a range in the spreadsheet.
         :param spreadsheet: Spreadsheet ID. (string)
