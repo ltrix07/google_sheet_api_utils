@@ -1,5 +1,5 @@
 from google_sheets_utils import *
-from typing import Optional
+from typing import Optional, Union
 
 
 class GoogleSheets:
@@ -105,7 +105,7 @@ class GoogleSheets:
             sheets.append(sheet.get('properties').get('title'))
         return sheets
 
-    def rows_count(self, spreadsheet: str, worksheet: Optional[str, list]) -> int:
+    def rows_count(self, spreadsheet: str, worksheet: Union[str, list[str]]) -> int:
         """
         Gets the total number of rows in the specified worksheets.
         :param spreadsheet: Spreadsheet ID.
@@ -120,7 +120,7 @@ class GoogleSheets:
                     row_count += sheet.get('properties').get('gridProperties').get('rowCount')
         return row_count
 
-    def columns_count(self, spreadsheet: str, worksheet: Optional[str, list]) -> int:
+    def columns_count(self, spreadsheet: str, worksheet: Union[str, list[str]]) -> int:
         """
         Gets the total number of columns in the specified worksheets.
         :param spreadsheet: Spreadsheet ID.
@@ -154,7 +154,7 @@ class GoogleSheets:
 
     def get_all_info_from_sheet(
             self, spreadsheet: str, worksheet: str, value_render_option: Optional[str] = None,
-            major_dimension: Optional[str, list] = None
+            major_dimension: Union[str, list[str], None] = None
     ) -> list:
         """
         Function get all info from spreadsheet.
@@ -193,7 +193,7 @@ class GoogleSheets:
         return columns_indices
 
     def get_columns_names(
-            self, spreadsheet: str, worksheet: str, value_render_option: Optional[str, list] = None
+            self, spreadsheet: str, worksheet: str, value_render_option: Union[str, list[str], None] = None
     ) -> list:
         """
         Function for getting the names of the columns in the table.
